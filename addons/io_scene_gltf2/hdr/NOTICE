@@ -1,0 +1,18 @@
+HERITAGE3D HDR Export — new Blender integration code, GPL-3.0-or-later.
+
+Bundled independent executable: Khronos KTX-Software 5.0.0-rc2 (ktx and libktx).
+Source and original binary distribution:
+https://github.com/KhronosGroup/KTX-Software/releases/tag/v5.0.0-rc2
+Source archive:
+https://github.com/KhronosGroup/KTX-Software/archive/refs/tags/v5.0.0-rc2.tar.gz
+
+KTX copyright holders include Mark Callow, The Khronos Group Inc., and other
+upstream contributors. Basis Universal copyright Binomial LLC; see BASIS-NOTICE.
+The upstream LICENSE.md and LICENSES texts are included in licenses/KTX.
+The ETC decoder's Ericsson license is included separately as ETCDEC-LICENSE.txt.
+These third-party files retain their original terms. The GPL applies to this
+add-on code, not as a replacement license for the separately bundled KTX tools.
+
+The build records the bundled executables' SHA-256 and release URL in
+vendor/manifest.json. No code from the user's installed KTX Blender add-on
+is included in this implementation.

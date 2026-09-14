@@ -13,7 +13,7 @@
 # limitations under the License.
 
 bl_info = {
-    'name': 'glTF 2.0 format',
+    'name': 'glTF 2.0 format — HERITAGE3D HDR fork',
     # This is now displayed as the maintainer, so show the foundation.
     # "author": "Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein", # Original Authors
     'author': "Blender Foundation, Khronos Group",
@@ -23,8 +23,8 @@ bl_info = {
     'description': 'Import-Export as glTF 2.0',
     'warning': '',
     'doc_url': "{BLENDER_MANUAL_URL}/addons/import_export/scene_gltf2.html",
-    'tracker_url': "https://github.com/KhronosGroup/glTF-Blender-IO/issues/",
-    'support': 'OFFICIAL',
+    'tracker_url': "https://github.com/darnhalm/glTF-Blender-IO/issues/",
+    'support': 'COMMUNITY',
     'category': 'Import-Export',
 }
 
@@ -217,7 +217,19 @@ class ConvertGLTF2_Base:
     )
 
 
+from .hdr.integration import HDRMaterial
+
+
 class ExportGLTF2_Base(ConvertGLTF2_Base):
+    export_hdr: BoolProperty(name="Embed HDR textures", default=False,
+        description="Embed linear EXR Base Color as UASTC HDR for HERITAGE3D; preserve Lit/Unlit")
+    export_hdr_resolution: EnumProperty(name="HDR maximum size",
+        items=[('2048', '2K', ''), ('4096', '4K', ''), ('0', 'Original', '')], default='4096')
+    export_hdr_quality: EnumProperty(name="HDR encoding quality",
+        items=[('2', 'Balanced', ''), ('4', 'High', '')], default='2')
+    hdr_materials: CollectionProperty(type=HDRMaterial, options={'SKIP_SAVE'})
+    hdr_scanned: BoolProperty(default=False, options={'HIDDEN', 'SKIP_SAVE'})
+
     # TODO: refactor to avoid boilerplate
 
     bl_options = {'PRESET'}
@@ -1123,6 +1135,20 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
         context.scene[self.scene_key] = export_props
 
     def execute(self, context):
+        if self.export_hdr:
+            from .hdr.integration import start
+            return start(self, context)
+        return self.execute_standard(context)
+
+    def modal(self, context, event):
+        from .hdr.integration import modal
+        return modal(self, context, event)
+
+    def cancel(self, context):
+        from .hdr.integration import finish
+        finish(self, context)
+
+    def execute_standard(self, context):
         import os
         import datetime
         from .io.exp.user_extensions import export_user_extensions
@@ -1443,6 +1469,8 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
         export_panel_include(layout, operator, is_file_browser)
         export_panel_transform(layout, operator)
         export_panel_data(layout, operator)
+        from .hdr.integration import draw as draw_hdr
+        draw_hdr(operator, context, layout)
         export_panel_animation(layout, operator)
 
         # If gltfpack is not setup in plugin preferences -> don't show any gltfpack relevant options in export dialog
@@ -2279,6 +2307,7 @@ def menu_func_import(self, context):
 
 
 classes = (
+    HDRMaterial,
     ExportGLTF2,
     ImportGLTF2,
     IO_FH_gltf2,
@@ -2313,7 +2342,7 @@ def unregister():
     if bpy.context.preferences.addons['io_scene_gltf2'].preferences.animation_ui is True:
         blender_ui.anim_ui_unregister()
 
-    for c in classes:
+    for c in reversed(classes):
         bpy.utils.unregister_class(c)
 
     # bpy.utils.unregister_module(__name__)

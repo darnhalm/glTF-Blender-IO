@@ -1,3 +1,5 @@
+> **HERITAGE3D HDR fork (Blender 5.2):** optional embedded EXR/UASTC HDR Base Color export in the standard glTF dialog. See [HDR export and preview installation](HDR-EXPORT.md). Upstream importer/exporter documentation follows.
+
 [![Blender](misc/Blender_logo.png)](http://www.blender.org/) [![glTF](misc/glTF_logo.png)](https://www.khronos.org/gltf/)
 
 Blender glTF 2.0 Importer and Exporter

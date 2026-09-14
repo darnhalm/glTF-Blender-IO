@@ -16,3 +16,6 @@ node_modules
 __pycache__
 *.pyc
 .vscode/
+/dist/
+addons/io_scene_gltf2/hdr/vendor/
+._*
