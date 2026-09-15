@@ -1,0 +1,16 @@
+{
+  "upstream": "https://github.com/tonis2/glTF-KTX-texture",
+  "source": "User-installed gltf_ktx2_texture_extension",
+  "manifest": "schema_version = \"1.0.0\"\n\nid = \"gltf_ktx2_texture_extension\"\nversion = \"1.0.7\"\nname = \"glTF KTX2 Texture Extension\"\ntagline = \"Add KTX2 texture support via KHR_texture_basisu extension\"\nmaintainer = \"glTF-Blender-IO Contributors\"\ntype = \"add-on\"\n\nwebsite = \"https://github.com/KhronosGroup/glTF-Blender-IO\"\ntags = [\"Import-Export\"]\n\nblender_version_min = \"4.2.0\"\nlicense = [\"SPDX:Apache-2.0\"]\n\n[permissions]\nfiles = \"Downloads KTX tools and reads/writes texture files\"\nnetwork = \"Downloads KTX-Software command-line tools on first use\"\n\n# Exclude non-essential files from the extension package\n[build]\npaths_exclude_pattern = [\n    \".git/\",\n    \".github/\",\n    \".claude/\",\n    \".gitignore\",\n    \"build.sh\",\n    \"example/\",\n    \"README.md\",\n    \"LICENSE\",\n]\n",
+  "sha256": {
+    "__init__.py": "e888277640caea634a1be80602b381e818d7d085185625a25efbd7dee476481e",
+    "ktx2_encode.py": "95a48e3841e53afcfbe93177c740ca100151a6058cd379ae4299557e06ab8075",
+    "ktx2_decode.py": "21e991056fe46124dfad3eb4376c06066d8c43b8162f5d49bfecec843b61213a",
+    "ktx2_envmap_encode.py": "9f505df2eb3e90a73200806ac9f95bba3be7aeea86e3c872970c56461ba194ef",
+    "ktx2_envmap_decode.py": "67a581537234a9bb38c9256fdd5234783bdb684d5fad4a92e4d7a73a662d792a",
+    "ktx_tools.py": "00ecacff40f89d9baa502cc71c937fcc588e0d6098be37f47426bb3badb36aa4",
+    "LICENSE": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "README.md": "c586b3ba90d4131a41ec7cd40263cfe26fd64a0308fd561ed33d6a95d8872831",
+    "blender_manifest.toml": "95afc605f32b50eab66a5b370383603a91516f76dec4d8ba06ea5b601982dca3"
+  }
+}

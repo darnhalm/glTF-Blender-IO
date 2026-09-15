@@ -13,7 +13,7 @@
 # limitations under the License.
 
 bl_info = {
-    'name': 'glTF 2.0 format — HERITAGE3D HDR fork',
+    'name': 'glTF 2.0 format — HERITAGE3D KTX + HDR fork',
     # This is now displayed as the maintainer, so show the foundation.
     # "author": "Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein", # Original Authors
     'author': "Blender Foundation, Khronos Group",
@@ -218,6 +218,8 @@ class ConvertGLTF2_Base:
 
 
 from .hdr.integration import HDRMaterial
+from .ktx import (glTF2ExportUserExtension, glTF2ImportUserExtension,
+                  glTF2_pre_export_callback, glTF2_post_export_callback, draw_import)
 
 
 class ExportGLTF2_Base(ConvertGLTF2_Base):
@@ -2324,6 +2326,8 @@ def register():
     # bpy.utils.register_module(__name__)
 
     blender_ui.register()
+    from . import ktx
+    ktx.register()
     if bpy.context.preferences.addons['io_scene_gltf2'].preferences.KHR_materials_variants_ui is True:
         blender_ui.variant_register()
     if bpy.context.preferences.addons['io_scene_gltf2'].preferences.animation_ui is True:
@@ -2336,6 +2340,8 @@ def register():
 
 def unregister():
     from .blender.com import gltf2_blender_ui as blender_ui
+    from . import ktx
+    ktx.unregister()
     blender_ui.unregister()
     if bpy.context.preferences.addons['io_scene_gltf2'].preferences.KHR_materials_variants_ui is True:
         blender_ui.variant_unregister()

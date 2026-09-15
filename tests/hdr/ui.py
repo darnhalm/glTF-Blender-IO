@@ -7,6 +7,8 @@ for name in list(sys.modules):
         del sys.modules[name]
 sys.path.insert(0, str(package))
 addon_utils.enable('io_scene_gltf2', default_set=True)
+bpy.context.scene.KTX2ExportProperties.enabled = True
+bpy.context.scene.KTX2ExportProperties.generate_mipmaps = True
 obj = bpy.context.active_object
 material = bpy.data.materials.new('UI HDR sample')
 material.use_nodes = True
@@ -21,11 +23,15 @@ def check():
     try:
         area = next(a for window in bpy.context.window_manager.windows for a in window.screen.areas if a.type == 'FILE_BROWSER')
         operator = area.spaces.active.active_operator
+        from io_scene_gltf2 import exporter_extension_layout_draw
+        assert 'KTX2 Textures' in exporter_extension_layout_draw
+        assert bpy.context.scene.KTX2ExportProperties.enabled
+        assert bpy.context.scene.KTX2ExportProperties.generate_mipmaps
         assert operator.export_hdr
         assert len(operator.hdr_materials) == 1
         assert operator.hdr_materials[0].enabled
         assert operator.hdr_materials[0].material_name == 'UI HDR sample'
-        pathlib.Path(sys.argv[-1]).write_text('PASS: standard glTF file browser draws HDR material selection')
+        pathlib.Path(sys.argv[-1]).write_text('PASS: standard glTF file browser draws HDR material selection with registered KTX textures and mipmaps')
     except Exception:
         pathlib.Path(sys.argv[-1]).write_text(traceback.format_exc())
     bpy.ops.wm.quit_blender()

@@ -1,4 +1,4 @@
-> **HERITAGE3D HDR fork (Blender 5.2):** optional embedded EXR/UASTC HDR Base Color export in the standard glTF dialog. See [HDR export and preview installation](HDR-EXPORT.md). Upstream importer/exporter documentation follows.
+> **HERITAGE3D KTX + HDR fork (Blender 5.2):** complete upstream exporter plus per-channel KTX2 compression, mipmaps, KTX import and embedded EXR/UASTC HDR Base Color in one add-on. See [HDR export and preview installation](HDR-EXPORT.md). Upstream importer/exporter documentation follows.
 
 [![Blender](misc/Blender_logo.png)](http://www.blender.org/) [![glTF](misc/glTF_logo.png)](https://www.khronos.org/gltf/)
 

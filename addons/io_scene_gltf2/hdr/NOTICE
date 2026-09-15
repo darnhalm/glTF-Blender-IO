@@ -14,5 +14,12 @@ These third-party files retain their original terms. The GPL applies to this
 add-on code, not as a replacement license for the separately bundled KTX tools.
 
 The build records the bundled executables' SHA-256 and release URL in
-vendor/manifest.json. No code from the user's installed KTX Blender add-on
-is included in this implementation.
+vendor/manifest.json.
+
+The combined fork also bundles toktx and libktx from KTX-Software 4.4.2:
+https://github.com/KhronosGroup/KTX-Software/releases/tag/v4.4.2
+https://github.com/KhronosGroup/KTX-Software/archive/refs/tags/v4.4.2.tar.gz
+Its license texts are included in licenses/KTX-4.4.2.
+
+The sibling ktx/ directory integrates Apache-2.0 code from the user's installed
+glTF KTX2 Texture Extension; see ktx/LICENSE and ktx/PROVENANCE.json.

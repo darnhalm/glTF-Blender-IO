@@ -1,0 +1,31 @@
+schema_version = "1.0.0"
+
+id = "gltf_ktx2_texture_extension"
+version = "1.0.7"
+name = "glTF KTX2 Texture Extension"
+tagline = "Add KTX2 texture support via KHR_texture_basisu extension"
+maintainer = "glTF-Blender-IO Contributors"
+type = "add-on"
+
+website = "https://github.com/KhronosGroup/glTF-Blender-IO"
+tags = ["Import-Export"]
+
+blender_version_min = "4.2.0"
+license = ["SPDX:Apache-2.0"]
+
+[permissions]
+files = "Downloads KTX tools and reads/writes texture files"
+network = "Downloads KTX-Software command-line tools on first use"
+
+# Exclude non-essential files from the extension package
+[build]
+paths_exclude_pattern = [
+    ".git/",
+    ".github/",
+    ".claude/",
+    ".gitignore",
+    "build.sh",
+    "example/",
+    "README.md",
+    "LICENSE",
+]

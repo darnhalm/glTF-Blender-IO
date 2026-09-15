@@ -156,6 +156,7 @@ def export_steps(context, target, selected=True, maximum=4096, quality=2, chosen
                 copy[MARKER] = key
                 fallback_image = bpy.data.images.load(str(fallback), check_existing=False)
                 images.append(fallback_image)
+                fallback_image['_heritage3d_hdr_fallback'] = True
                 # Replace only this node in a copied material; other maps and links survive.
                 copy.node_tree.nodes[nodes[material].name].image = fallback_image
                 replacements[material] = copy
