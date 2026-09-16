@@ -61,7 +61,8 @@ for mode, mipmaps, fallback in [('ETC1S', True, False), ('UASTC', False, True), 
         assert struct.unpack_from('<I', data, 40)[0] == (5 if mipmaps else 1)
     if mode != 'ASTC':
         paths.append(path)
-# Mixing HDR Base Color and ordinary UASTC normals keeps a PNG HDR fallback.
+# HDR Base Color always receives a standard, required UASTC fallback with mips;
+# ordinary KTX settings still apply independently to the normal map.
 props.basecolor.target_format = 'BASISU'
 props.basecolor.basisu.compression_mode = 'UASTC'
 props.generate_mipmaps = False
@@ -75,9 +76,14 @@ assert len(doc['extras']['HERITAGE3D_hdr_surface']['textures']) == 1
 m = doc['materials'][0]
 base_t = doc['textures'][m['pbrMetallicRoughness']['baseColorTexture']['index']]
 normal_t = doc['textures'][m['normalTexture']['index']]
-assert 'KHR_texture_basisu' not in base_t.get('extensions', {})
+assert 'KHR_texture_basisu' in base_t.get('extensions', {})
 assert 'KHR_texture_basisu' in normal_t['extensions']
-assert doc['images'][base_t['source']]['mimeType'] == 'image/png'
+assert 'source' not in base_t
+base_image = doc['images'][base_t['extensions']['KHR_texture_basisu']['source']]
+assert base_image['mimeType'] == 'image/ktx2'
+base_view = doc['bufferViews'][base_image['bufferView']]
+base_data = binary[base_view['byteOffset']:base_view['byteOffset'] + base_view['byteLength']]
+assert struct.unpack_from('<I', base_data, 40)[0] == 5
 # Required Basis textures must decode with no PNG fallback to mask failures.
 for path in paths:
     before = set(bpy.data.images)

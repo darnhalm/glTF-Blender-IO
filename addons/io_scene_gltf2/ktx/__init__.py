@@ -422,21 +422,27 @@ class glTF2ExportUserExtension:
 
     def gather_texture_hook(self, gltf2_texture, blender_shader_sockets, export_settings):
         """Hook called when gathering texture data for export."""
-        if not self.properties.enabled:
-            return
-
-        if not check_tools_available():
-            export_settings['log'].warning("KTX2 export disabled: KTX tools not installed")
-            return
-
         if gltf2_texture.source is None:
             return
 
-        for wrapper in blender_shader_sockets:
-            for link in wrapper.socket.links:
-                node = link.from_node
-                if node.type == 'TEX_IMAGE' and node.image and node.image.get('_heritage3d_hdr_fallback'):
-                    return
+        # HDR export stages a temporary SDR fallback image. Always encode that image
+        # as standard UASTC KTX2 with a full mip chain, even when ordinary KTX export
+        # is disabled. Keeping the fallback GPU-compressed avoids an additional
+        # 4-byte-per-pixel PNG allocation in the viewer while preserving a normal
+        # KHR_texture_basisu path for third-party glTF readers.
+        source_image = gltf2_texture.source
+        hdr_fallback = any(
+            link.from_node.type == 'TEX_IMAGE' and link.from_node.image and
+            link.from_node.image.get('_heritage3d_hdr_fallback')
+            for wrapper in blender_shader_sockets
+            for link in wrapper.socket.links
+        )
+        if not self.properties.enabled and not hdr_fallback:
+            return
+
+        if not check_tools_available():
+            export_settings['log'].warning("KTX2 export disabled: bundled KTX tools are unavailable")
+            return
 
         # Get texture info
         socket_names = []
@@ -490,14 +496,19 @@ class glTF2ExportUserExtension:
 
         from . import ktx2_encode
 
-        # Get the source image
-        source_image = gltf2_texture.source
+        target_format = 'BASISU' if hdr_fallback else format_props.target_format
+        if hdr_fallback:
+            compression_mode = 'UASTC'
+            oetf = 'srgb'
+            target_type = 'RGB'
+        generate_mipmaps = True if hdr_fallback else self.properties.generate_mipmaps
+        create_fallback = False if hdr_fallback else self.properties.create_fallback
 
         # Check if we already processed this image
         cache_key = (
-            id(source_image), format_props.target_format, compression_mode,
+            id(source_image), target_format, compression_mode,
             oetf, target_type, format_props.downsample_factor, format_props.rdo_factor,
-            self.properties.generate_mipmaps, format_props.astc.astc_block_size,
+            generate_mipmaps, format_props.astc.astc_block_size,
             format_props.basisu.uastc.quality_level, format_props.basisu.uastc.compression_level,
             format_props.basisu.etc1s.quality_level, format_props.basisu.etc1s.compression_level,
             "Normal" in socket_names, format_props.normal_mode, format_props.normal_two_channel,
@@ -522,12 +533,12 @@ class glTF2ExportUserExtension:
 
             ktx2_image = ktx2_encode.encode_image_to_ktx2(
                 source_image,
-                format_props.target_format,
+                target_format,
                 compression_mode,
                 quality_level,
                 compression_level,
                 format_props.rdo_factor,
-                self.properties.generate_mipmaps,
+                generate_mipmaps,
                 export_settings,
                 astc_block_size=format_props.astc.astc_block_size,
                 oetf=oetf,
@@ -553,11 +564,11 @@ class glTF2ExportUserExtension:
         gltf2_texture.extensions[glTF_extension_name] = self.Extension(
             name=glTF_extension_name,
             extension=ext_data,
-            required=not self.properties.create_fallback
+            required=not create_fallback
         )
 
         # If no fallback wanted, remove the original source
-        if not self.properties.create_fallback:
+        if not create_fallback:
             gltf2_texture.source = None
 
     def gather_gltf_extensions_hook(self, gltf, export_settings):

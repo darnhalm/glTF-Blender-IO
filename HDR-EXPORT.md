@@ -16,7 +16,9 @@ legacy option: its KHR_texture_basisu declaration is not standard Basis Universa
 and native ASTC import/third-party interoperability is not validated.
 
 HDR and ordinary KTX can be enabled together. HDR Base Color always retains an
-embedded PNG fallback, while other material channels use the KTX settings.
+embedded, standard UASTC KTX2 fallback with a full mip chain, while other material
+channels use the KTX settings. The HDR fallback is encoded even when ordinary KTX
+export is disabled, so compatible glTF viewers keep a GPU-compressed SDR path.
 With both options off, export follows the upstream path. The original import,
 geometry, animation and compression controls remain available.
 
