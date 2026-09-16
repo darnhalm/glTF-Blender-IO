@@ -32,8 +32,16 @@ def objects_for_export(operator, context):
 
 
 def materials_for_export(operator, context):
-    return sorted({s.material for o in objects_for_export(operator, context) if o.type == 'MESH'
-                   for s in o.material_slots if s.material}, key=lambda m: m.name)
+    materials = set()
+    for obj in objects_for_export(operator, context):
+        if obj.type != 'MESH':
+            continue
+        materials.update(slot.material for slot in obj.material_slots if slot.material)
+        # KHR_materials_variants keeps alternate materials on mesh metadata rather
+        # than in the currently displayed object slots. Include them in the same
+        # HDR candidate list so a layer can carry its own embedded EXR map.
+        materials.update(item.material for item in getattr(obj.data, 'gltf2_variant_mesh_data', []) if item.material)
+    return sorted(materials, key=lambda m: m.name)
 
 
 def scan(operator, context):

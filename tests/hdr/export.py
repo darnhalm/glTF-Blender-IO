@@ -139,6 +139,39 @@ assert selected_doc['materials'][0]['extras']['user_note']
 assert all('_heritage3d_hdr_export_id' not in m.get('extras', {}) for m in selected_doc['materials'])
 assert len(selected_doc['extras']['HERITAGE3D_hdr_surface']['textures']) == 1
 assert obj.data.materials[0] == material and obj.data.materials[1] == second
+# KHR_materials_variants materials live outside the visible material slots. They
+# must still appear in the HDR selector, receive their own attachment, and be restored.
+preferences = bpy.context.preferences.addons['io_scene_gltf2'].preferences
+preferences.KHR_materials_variants_ui = True
+obj.data.materials.clear()
+obj.data.materials.append(material)
+for face in obj.data.polygons:
+    face.material_index = 0
+variant_material = material.copy()
+variant_material.name = 'Infrared HDR Variant'
+scene_variant = bpy.context.scene.gltf2_KHR_materials_variants_variants.add()
+scene_variant.variant_idx = 0
+scene_variant.name = 'Infrared'
+default = obj.data.gltf2_variant_default_materials.add()
+default.material_slot_index = 0
+default.default_material = material
+variant_primitive = obj.data.gltf2_variant_mesh_data.add()
+variant_primitive.material_slot_index = 0
+variant_primitive.material = variant_material
+variant_pointer = variant_primitive.variants.add()
+variant_pointer.variant.variant_idx = 0
+variant_path = output_dir / 'hdr-variant.glb'
+assert bpy.ops.export_scene.gltf(filepath=str(variant_path), export_hdr=True,
+    use_selection=True, use_active_scene=True) == {'FINISHED'}
+variant_doc, _ = unpack(variant_path.read_bytes())
+assert variant_doc['extensions']['KHR_materials_variants']['variants'][0]['name'] == 'Infrared'
+mapping = variant_doc['meshes'][0]['primitives'][0]['extensions']['KHR_materials_variants']['mappings'][0]
+assert mapping['variants'] == [0]
+bindings = variant_doc['extras']['HERITAGE3D_hdr_surface']['textures']
+assert len(bindings) == 2
+assert {binding['material'] for binding in bindings} == {0, mapping['material']}
+assert obj.active_material == material
+assert variant_primitive.material == variant_material
 # Geometry compression remains available when overlaying the shipped exporter.
 draco_path = output_dir / 'draco.glb'
 assert bpy.ops.export_scene.gltf(filepath=str(draco_path), export_hdr=True,

@@ -35,6 +35,23 @@ material graph and the upstream glTF exporter, not HDR detection. Complex node
 graphs, UDIM and multilayer EXR are outside the HDR Base Color preview.
 Original materials and images are restored; HDR is prepared on temporary copies.
 
+## Texture layers and material variants
+
+Texture layers use the ratified `KHR_materials_variants` extension already built
+into the Khronos Blender exporter. Enable **Edit > Preferences > Add-ons > glTF
+2.0 > Material Variants**. The **glTF Variants** panel then appears in the 3D
+View sidebar. Add a named variant, display it, assign the desired material to the
+selected mesh, and press **Assign To Variant**. **Reset To Original** returns to
+the base material. Exporting the GLB writes one geometry set plus the original
+material and every assigned variant material.
+
+HDR scanning includes both the currently displayed material slots and materials
+stored only in `KHR_materials_variants`. Consequently Lit, Unlit, ultraviolet,
+infrared and other named layers can each reference a separate embedded texture;
+any eligible linear Rec.709 EXR layer can receive its own UASTC HDR attachment.
+The viewer decodes only the attachment used by the active variant. Variant names
+are scientific labels, while Lit/Unlit remains a property of each glTF material.
+
 The existing export options are passed through to the upstream exporter.
 HDR requires material export and cannot be combined with gltfpack in this preview.
 Selection, visibility and collection filters determine HDR candidates; bindings

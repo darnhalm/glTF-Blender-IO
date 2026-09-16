@@ -85,6 +85,8 @@ def export_steps(context, target, selected=True, maximum=4096, quality=2, chosen
         raise ValueError('Choose a .glb output file')
     objects = list(objects) if objects is not None else list(context.selected_objects if selected else context.scene.objects)
     available = {slot.material for obj in objects if obj.type == 'MESH' for slot in obj.material_slots if slot.material}
+    available.update(item.material for obj in objects if obj.type == 'MESH'
+                     for item in getattr(obj.data, 'gltf2_variant_mesh_data', []) if item.material)
     if not hdr:
         materials = []
     elif chosen is None:
@@ -106,7 +108,7 @@ def export_steps(context, target, selected=True, maximum=4096, quality=2, chosen
     sizes = {m: dimensions(nodes[m].image, maximum) for m in materials}
     if any(max(s) > 8192 for s in sizes.values()) or sum(mip_bytes(*s) for s in sizes.values()) > LIMIT:
         raise ValueError('Textures exceed the 256 MiB HDR budget. Reduce resolution or material count')
-    copies, images, slots = [], [], []
+    copies, images, slots, variant_materials = [], [], [], []
     process = None
     with tempfile.TemporaryDirectory(prefix='heritage3d-hdr-') as tmp:
         root = Path(tmp)
@@ -170,6 +172,13 @@ def export_steps(context, target, selected=True, maximum=4096, quality=2, chosen
                         if slot.material in replacements:
                             slots.append((slot, slot.material))
                             slot.material = replacements[slot.material]
+                    # Variant materials are gathered from this metadata after the
+                    # exporter resets visible slots to their original materials.
+                    # Stage the same marked fallback copy here and restore it below.
+                    for item in getattr(obj.data, 'gltf2_variant_mesh_data', []):
+                        if item.material in replacements:
+                            variant_materials.append((item, item.material))
+                            item.material = replacements[item.material]
                 intermediate = root / 'model.glb'
                 result = export_callback(intermediate) if export_callback else bpy.ops.export_scene.gltf(
                     filepath=str(intermediate), export_format='GLB', use_selection=selected,
@@ -177,6 +186,9 @@ def export_steps(context, target, selected=True, maximum=4096, quality=2, chosen
                 if 'FINISHED' not in result:
                     raise RuntimeError('Blender glTF export did not finish')
             finally:
+                for item, material in reversed(variant_materials):
+                    item.material = material
+                variant_materials.clear()
                 for slot, material in reversed(slots):
                     slot.material = material
                 slots.clear()
@@ -200,6 +212,8 @@ def export_steps(context, target, selected=True, maximum=4096, quality=2, chosen
                     process.wait()
             for slot, material in reversed(slots):
                 slot.material = material
+            for item, material in reversed(variant_materials):
+                item.material = material
             for material in copies:
                 bpy.data.materials.remove(material)
             for image in images:
