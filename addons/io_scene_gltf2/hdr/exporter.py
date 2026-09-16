@@ -25,12 +25,28 @@ def source_node(material):
     node = socket.links[0].from_node
     if node.type == 'BSDF_PRINCIPLED':
         socket = node.inputs['Base Color']
+    elif node.type == 'MIX_SHADER':
+        # Official glTF shadeless setup recognized by the upstream exporter:
+        # Is Camera Ray -> Mix factor, Transparent -> input 1, Emission -> input 2.
+        factor = node.inputs[0]
+        shader_1 = node.inputs[1]
+        shader_2 = node.inputs[2]
+        factor_node = factor.links[0].from_node if factor.is_linked else None
+        factor_output = factor.links[0].from_socket if factor.is_linked else None
+        transparent = shader_1.links[0].from_node if shader_1.is_linked else None
+        emission = shader_2.links[0].from_node if shader_2.is_linked else None
+        if (factor_node is None or factor_node.type != 'LIGHT_PATH' or
+                factor_output.name != 'Is Camera Ray' or
+                transparent is None or transparent.type != 'BSDF_TRANSPARENT' or
+                emission is None or emission.type != 'EMISSION'):
+            raise ValueError(f'{material.name}: use the official glTF Unlit Camera Ray node setup')
+        socket = emission.inputs['Color']
     elif node.type == 'BACKGROUND':
         if node.inputs['Strength'].is_linked or node.inputs['Strength'].default_value != 1:
             raise ValueError(f'{material.name}: Unlit Background strength must be 1')
         socket = node.inputs['Color']
     elif node.type != 'TEX_IMAGE':
-        raise ValueError(f'{material.name}: v0.1 supports direct Image → Principled Base Color or Image → Output (Unlit)')
+        raise ValueError(f'{material.name}: connect Image to Principled Base Color or use the official glTF Unlit Camera Ray setup')
     if not socket.is_linked:
         raise ValueError(f'{material.name}: connect an EXR to Base Color')
     link = socket.links[0]

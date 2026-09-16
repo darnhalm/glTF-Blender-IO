@@ -28,11 +28,15 @@ KHR_environment_map representation is not a ratified portable format. This legac
 path clips HDR to SDR and estimates intensity; it does not preserve EXR radiance.
 It is independent of full-range HDR Base Color.
 
-Eligible materials have a linear Rec.709 EXR directly connected to Principled
-Base Color (Lit), or Image Color directly connected to Material Output (Unlit).
-Background with strength 1 is also supported. Type comes from the original
-material graph and the upstream glTF exporter, not HDR detection. Complex node
-graphs, UDIM and multilayer EXR are outside the HDR Base Color preview.
+Eligible Lit materials have a linear Rec.709 EXR directly connected to Principled
+Base Color. For Unlit, use the official glTF shadeless graph: Image Color to
+Emission Color; Transparent and Emission to Mix Shader inputs 1 and 2; Light Path
+`Is Camera Ray` to the Mix factor; and Mix Shader to Material Output. The upstream
+exporter writes this as Base Color with `KHR_materials_unlit`, while the camera-ray
+setup prevents the surface from lighting the scene in Cycles. Legacy direct Image
+to Output and Background strength 1 graphs remain supported. Type comes from the
+original material graph, not HDR detection. Other complex graphs, UDIM and
+multilayer EXR are outside the HDR Base Color preview.
 Original materials and images are restored; HDR is prepared on temporary copies.
 
 ## Texture layers and material variants

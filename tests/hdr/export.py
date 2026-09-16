@@ -67,9 +67,20 @@ for unlit in (False, True):
     texture.image = image
     output = nodes.get('Material Output')
     principled = nodes.get('Principled BSDF')
-    material.node_tree.links.new(texture.outputs['Color'], output.inputs['Surface'] if unlit else principled.inputs['Base Color'])
-    principled.inputs['Roughness'].default_value = 0.37
-    principled.inputs['Metallic'].default_value = 0.2
+    if unlit:
+        emission = nodes.new('ShaderNodeEmission')
+        transparent = nodes.new('ShaderNodeBsdfTransparent')
+        light_path = nodes.new('ShaderNodeLightPath')
+        mix = nodes.new('ShaderNodeMixShader')
+        material.node_tree.links.new(texture.outputs['Color'], emission.inputs['Color'])
+        material.node_tree.links.new(transparent.outputs[0], mix.inputs[1])
+        material.node_tree.links.new(emission.outputs[0], mix.inputs[2])
+        material.node_tree.links.new(light_path.outputs['Is Camera Ray'], mix.inputs[0])
+        material.node_tree.links.new(mix.outputs[0], output.inputs['Surface'])
+    else:
+        material.node_tree.links.new(texture.outputs['Color'], principled.inputs['Base Color'])
+        principled.inputs['Roughness'].default_value = 0.37
+        principled.inputs['Metallic'].default_value = 0.2
     obj.data.materials.clear()
     obj.data.materials.append(material)
     material['user_note'] = 'must not leak when Custom Properties is off'
